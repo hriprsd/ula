@@ -25,12 +25,25 @@
         <v-btn text @click="close">Cancel</v-btn>
       </v-card-actions>
     </v-card>
+    <!-- Dialog for displaying invalid credentials message -->
+    <v-dialog v-model="errorDialog" max-width="400">
+      <v-card>
+        <v-card-title class="headline">Error</v-card-title>
+        <v-card-text>
+          Invalid username or password. Please try again.
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" text @click="errorDialog = false">OK</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-dialog>
 </template>
 
 <script>
 export default {
-    name: 'LoginPage',
+  name: 'LoginPage',
   props: {
     show: {
       type: Boolean,
@@ -42,7 +55,8 @@ export default {
       ntid: '', // Test user's NTID
       password: '', // Test user's password
       valid: false,
-      localShow: this.show
+      localShow: this.show,
+      errorDialog: false // Flag for showing error dialog
     };
   },
   watch: {
@@ -71,8 +85,8 @@ export default {
           this.$router.push('/user-type-destination');
           this.close();
         } else {
-          // Handle invalid credentials
-          console.error('Invalid credentials');
+          // Show error dialog for invalid credentials
+          this.errorDialog = true;
         }
       }
     }

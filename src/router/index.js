@@ -4,7 +4,9 @@ import Vue from 'vue';
 import VueRouter from 'vue-router';
 import LandingPage from '../components/LandingPage.vue';
 import LoginPage from '../components/LoginDialog.vue';
-import UserTypeDestinationPage from '../components/UserTypeDestinationPage.vue'; // Import UserTypeDestinationPage component
+import UserTypeDestinationPage from '../components/UserTypeDestinationPage.vue';
+import PilotView from '../components/PilotView.vue'; // Import PilotView component
+import PassengerView from '../components/PassengerView.vue'; // Import PassengerView component
 
 Vue.use(VueRouter);
 
@@ -20,9 +22,19 @@ const routes = [
     component: LoginPage
   },
   {
-    path: '/user-type-destination', // Define the route for /user-type-destination
+    path: '/user-type-destination',
     name: 'UserTypeDestinationPage',
     component: UserTypeDestinationPage
+  },
+  {
+    path: '/pilot-view', // Define the route for the pilot view
+    name: 'PilotView',
+    component: PilotView
+  },
+  {
+    path: '/passenger-view', // Define the route for the passenger view
+    name: 'PassengerView',
+    component: PassengerView
   }
 ];
 

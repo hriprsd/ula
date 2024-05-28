@@ -39,14 +39,17 @@
             v-model="isPilot"
             label="Are you a pilot?"
           ></v-checkbox>
+          <!-- Show vehicle details fields only if 'Are you a pilot?' is checked -->
           <v-expand-transition>
             <div v-if="isPilot">
-              <v-text-field
+              <v-select
                 v-model="vehicleType"
-                label="Vehicle Type (2 wheeler or 4 wheeler)"
+                :items="['2 wheeler', '4 wheeler']"
+                label="Vehicle Type"
                 :rules="[v => !!v || 'Vehicle type is required']"
                 required
-              ></v-text-field>
+                @change="handleVehicleTypeChange"
+              ></v-select>
               <v-text-field
                 v-model="vehicleNumber"
                 label="Vehicle Number"
@@ -60,6 +63,7 @@
                 required
               ></v-text-field>
               <v-text-field
+                v-if="vehicleType === '4 wheeler'"
                 v-model="seats"
                 label="Number of Seats"
                 :rules="[v => !!v || 'Number of seats is required']"
@@ -124,12 +128,18 @@ export default {
           mobile: this.mobile,
           location: this.location,
           password: this.password,
-          isPilot: this.isPilot,
-          vehicleType: this.vehicleType,
-          vehicleNumber: this.vehicleNumber,
-          vehicleModel: this.vehicleModel,
-          seats: this.seats
+          isPilot: this.isPilot
         };
+
+        // Add vehicle details to data only if the user is a pilot
+        if (this.isPilot) {
+          Object.assign(data, {
+            vehicleType: this.vehicleType,
+            vehicleNumber: this.vehicleNumber,
+            vehicleModel: this.vehicleModel,
+            seats: this.vehicleType === '2 wheeler' ? '1' : this.seats
+          });
+        }
 
         // Make an API call to register
         fetch('https://your-backend-api/register', {
@@ -148,6 +158,12 @@ export default {
         .catch(error => {
           console.error('Error:', error);
         });
+      }
+    },
+    handleVehicleTypeChange() {
+      // Reset seats if the vehicle type is 2 wheeler
+      if (this.vehicleType === '2 wheeler') {
+        this.seats = '1';
       }
     }
   }
