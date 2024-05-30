@@ -1,4 +1,5 @@
 <template>
+  <!--Copyright Notice : © 2024 Comcast-->
   <v-container class="fill-height">
     <v-app-bar app dark color="primary">
       <v-toolbar-title>Welcome, {{ userName }}</v-toolbar-title>
