@@ -1,4 +1,5 @@
 <template>
+  <!--Copyright Notice : © 2024 Comcast-->
   <v-dialog v-model="localShow" max-width="600">
     <v-card>
       <v-card-title class="headline">Register</v-card-title>
@@ -24,7 +25,7 @@
           ></v-text-field>
           <v-text-field
             v-model="location"
-            label="Location"
+            label="Location (Ex: Kamatchi Hospital, Pallikaranai)"
             :rules="[v => !!v || 'Location is required']"
             required
           ></v-text-field>
@@ -44,7 +45,7 @@
             <div v-if="isPilot">
               <v-select
                 v-model="vehicleType"
-                :items="['2 wheeler', '4 wheeler']"
+                :items="['2-wheeler', '4-wheeler']"
                 label="Vehicle Type"
                 :rules="[v => !!v || 'Vehicle type is required']"
                 required
@@ -63,6 +64,18 @@
                 required
               ></v-text-field>
               <v-text-field
+                v-model="vehicleColor"
+                label="Vehicle color"
+                :rules="[v => !!v || 'Vehicle color is required']"
+                required
+              ></v-text-field>
+              <v-text-field
+                v-model="vehicleMake"
+                label="Vehicle Make"
+                :rules="[v => !!v || 'Vehicle make is required']"
+                required
+              ></v-text-field>
+              <v-text-field
                 v-if="vehicleType === '4 wheeler'"
                 v-model="seats"
                 label="Number of Seats"
@@ -73,6 +86,7 @@
           </v-expand-transition>
         </v-form>
       </v-card-text>
+      {{ statusMsg }}
       <v-card-actions>
         <v-spacer></v-spacer>
         <v-btn color="blue darken-1" text @click="register">Register</v-btn>
@@ -83,6 +97,7 @@
 </template>
 
 <script>
+import axios from 'axios';
 export default {
   props: {
     show: {
@@ -102,8 +117,11 @@ export default {
       vehicleNumber: '',
       vehicleModel: '',
       seats: '',
+      vehicleColor: '',
+      vehicleMake: '',
       valid: false,
-      localShow: this.show
+      localShow: this.show,
+      statusMsg: ''
     };
   },
   watch: {
@@ -123,12 +141,18 @@ export default {
     register() {
       if (this.$refs.form.validate()) {
         const data = {
-          name: this.name,
-          ntid: this.ntid,
-          mobile: this.mobile,
+          user_name: this.name,
+          user_nt_id: this.ntid,
+          mobile_number: this.mobile,
           location: this.location,
-          password: this.password,
-          isPilot: this.isPilot
+          passphrase: this.password,
+          user_type_id: this.isPilot? '1' : '2',
+          vehicle_number: this.vehicleNumber,
+          vehicle_model: this.vehicleModel,
+          number_of_seats: this.vehicleType,
+          vehicle_type: this.vehicleType,
+          vehicle_make:  this.vehicleMake,
+          vehicle_color: this.vehicleColor
         };
 
         // Add vehicle details to data only if the user is a pilot
@@ -140,30 +164,20 @@ export default {
             seats: this.vehicleType === '2 wheeler' ? '1' : this.seats
           });
         }
-
+        
         // Make an API call to register
-        fetch('https://your-backend-api/register', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(data)
+        axios.post('https://your-backend-api/signup', {
+          data
         })
         .then(response => response.json())
         .then(data => {
-          // Handle response
+          this.statusMsg = 'Registration successful! Please Loging to continue.';
           console.log(data);
           this.close();
         })
         .catch(error => {
           console.error('Error:', error);
         });
-      }
-    },
-    handleVehicleTypeChange() {
-      // Reset seats if the vehicle type is 2 wheeler
-      if (this.vehicleType === '2 wheeler') {
-        this.seats = '1';
       }
     }
   }
