@@ -1,8 +1,10 @@
 # Ula
 
-==உலா : Ulā==
-
-==*verb*: To commute==
+> Derived from *Tamil word*
+>
+> உலா : Ulā
+> 
+> *verb*: To commute
 
 *Ula* is a ride sharing application for people commuting to and from the same workplace.
 The app intelligently lists colleagues travelling on the path intersecting with passengers requesting for ride.

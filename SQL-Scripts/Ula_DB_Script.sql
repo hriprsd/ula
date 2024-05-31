@@ -82,17 +82,36 @@ CREATE TABLE user_vehicle_txn (
     FOREIGN KEY (trip_id) REFERENCES vehicle_trips (id)   
 );
 
-CREATE TABLE trip_request_temp (
+CREATE TABLE trip_request_queue (
     id INT AUTO_INCREMENT PRIMARY KEY,
     trip_id INT,
     pilot_id INT,
     passenger_id INT,
+    trip_request_status ENUM ('trip_request_sent', 'trip_request_accepted', 'trip_request_completed'),
     FOREIGN KEY (trip_id) REFERENCES vehicle_trips (id),
     FOREIGN KEY (pilot_id) REFERENCES user_details (id),
     FOREIGN KEY (passenger_id) REFERENCES user_details (id)
 );
 
-ALTER TABLE trip_request_temp RENAME trip_request_queue;
+-------------------------------------------------------------------------------
+
+USE uladb;
+
+DELIMITER $$
+
+DROP TRIGGER IF EXISTS uladb.after_vehicle_trips_insert; $$
+
+BEGIN
+    INSERT INTO current_available_vehicles (trip_id, available_seats) 
+    VALUES (NEW.id, (SELECT number_of_seats FROM vehicle_details WHERE id = NEW.vehicle_id));
+
+    INSERT INTO user_vehicle_txn (trip_id, user_id) 
+    VALUES (NEW.id, NEW.pilot_id);
+END $$
+
+DELIMITER ;
+
+-------------------------------------------------------------------------------
 
 USE uladb;
 
@@ -111,48 +130,48 @@ END $$
 
 DELIMITER ;
 
-
-
-
-USE uladb;
-
-DELIMITER $$
-
-DROP TRIGGER IF EXISTS uladb.after_user_vehicle_txn_insert; $$
-
-CREATE TRIGGER uladb.after_user_vehicle_txn_insert AFTER INSERT 
-ON user_vehicle_txn
-FOR EACH ROW
-BEGIN
-    UPDATE current_available_vehicles SET available_seats = available_seats - 1 WHERE trip_id = NEW.trip_id;
-    
-    DELETE FROM trip_request_queue WHERE trip_id = NEW.trip_id AND passenger_id = NEW.user_id;
-END $$
-
-DELIMITER ;
-
-
-
-
-
+-------------------------------------------------------------------------------
 
 USE uladb;
 
 DELIMITER $$
 
-DROP TRIGGER IF EXISTS after_vehicle_trips_update;
+DROP TRIGGER IF EXISTS after_vehicle_trips_update; $$
 
 CREATE TRIGGER after_vehicle_trips_update AFTER UPDATE 
 ON vehicle_trips
 FOR EACH ROW
 BEGIN
     IF (NEW.trip_status = 'COMPLETED') THEN
-        DELETE FROM current_available_vehicles WHERE trip_id = OLD.trip_id;
+        DELETE FROM current_available_vehicles WHERE trip_id = OLD.id;
         
         UPDATE vehicle_trips SET trip_end_date_time = CURRENT_TIMESTAMP WHERE id = OLD.id;
         
-        UPDATE user_vehicle_txn SET trip_end_date_time = CURRENT_TIMESTAMP WHERE trip_id = OLD.trip_id;
+        UPDATE user_vehicle_txn SET trip_end_date_time = CURRENT_TIMESTAMP WHERE trip_id = OLD.id;
     END IF;
 END $$
 
 DELIMITER ;
+
+-------------------------------------------------------------------------------
+
+USE uladb;
+
+DELIMITER $$
+
+DROP TRIGGER IF EXISTS uladb.after_trip_request_queue_update; $$
+
+CREATE TRIGGER uladb.after_trip_request_queue_update AFTER UPDATE 
+ON trip_request_queue
+FOR EACH ROW
+BEGIN
+    IF (NEW.trip_request_status = 'trip_request_completed') THEN
+        INSERT INTO user_vehicle_txn (user_id, trip_id) 
+        VALUES (NEW.passenger_id, NEW.trip_id);
+    END IF;
+
+END $$
+
+DELIMITER ;
+
+-------------------------------------------------------------------------------
