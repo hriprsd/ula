@@ -1,3 +1,5 @@
+<img src="ula.png" alt="Ula" width="100">
+
 # Ula
 
 > Derived from *Tamil word*
@@ -12,6 +14,13 @@ Authentication is using office ID so that the app stays internal to the organiza
 
 Project is written using nodeJS , to build the project run `npm install` and to run it locally, use `npm run serve`
 
+## Project setup
+
+- The code is written in Vue.js and uses Ionic for the UI components. 
+- MySQL db is used to store the data and the backend is written in node.js using express.js framework.
+- Ula uses Google Maps API to get the location and distance between the users.
+- It automatically suggests the pilots to the passenger if their route to or from work intersects with the passengers base location.
+- Ula provides flexibility to the pilots to accept or reject the ride requests based on their convenience, also it provides choice to the passengers to choose the pilot.
 
 # To build apk to run on android, follow the following steps:
 ## 1: Install Ionic
@@ -50,7 +59,6 @@ Make sure the sdkmanager binary is used to accept all lisence terms.
 npm run build
 ionic build
 ```
-This command will generate the APK file in the platforms/android/app/build/outputs/apk/ directory.
 
 ## 6: To build apk using gradle, use the commands
 
@@ -59,6 +67,7 @@ npx cap add android # to add android platform to capacitor
 ./gradlew assembleDebug # to build debug apk for testing
 ./gradlew assembleRelease # to build release apk for production
 ```
+This command will generate the APK file in the `UI/android/app/build/outputs/apk/` directory.
 
 The build apk can be copied over to a virtual device/simulator on IDE of choice or an android device to be installed and used. 
 

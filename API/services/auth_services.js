@@ -93,7 +93,6 @@ async function startRide(ctx){
         console.log(token);
         let decoded = decryptJWT(token);
         userDetails = decoded;
-        console.log(decoded);
         if(decoded){
             console.log('User is authorized to perform this operation');
         }
@@ -153,7 +152,6 @@ async function getAvailableRides(ctx){
         let token = ctx.request.header['authorization'];
         let decoded = decryptJWT(token);
         userDetails = decoded;
-        console.log(decoded);
         if(decoded){
             console.log('User is authorized to perform this operation');
         }
@@ -203,7 +201,6 @@ async function requestRide(ctx){
         let token = ctx.request.header['authorization'];
         let decoded = decryptJWT(token);
         userDetails = decoded;
-        console.log(decoded);
         if(decoded){
             console.log('User is authorized to perform this operation');
         }
@@ -218,10 +215,11 @@ async function requestRide(ctx){
         pilot_id: ctx.request.body.pilot_id,
         user_nt_id: userDetails.user_nt_id
     }
-    let requestResponse = await sql.sqlConnection(`INSERT INTO trip_request_queue (trip_id, pilot_id, passenger_id)
+    let requestResponse = await sql.sqlConnection(`INSERT INTO trip_request_queue (trip_id, pilot_id, passenger_id, trip_request_status)
     VALUES ((SELECT id FROM vehicle_trips WHERE trip_status = 'IN_PROGRESS' AND pilot_id = (SELECT id FROM user_details WHERE user_nt_id = ?)),
             (SELECT id FROM user_details WHERE user_nt_id = ?),
-            (SELECT id FROM user_details WHERE user_nt_id = ?))`,[requestDetails.pilot_id, requestDetails.pilot_id, requestDetails.user_nt_id]);
+            (SELECT id FROM user_details WHERE user_nt_id = ?),
+        'trip_request_sent')`,[requestDetails.pilot_id, requestDetails.pilot_id, requestDetails.user_nt_id]);
     if(requestResponse.affectedRows>0){
         console.log('Request sent successfully');
         ctx.body = 'Request sent successfully';
@@ -235,7 +233,6 @@ async function acceptRide(ctx){
         let token = ctx.request.header['authorization'];
         let decoded = decryptJWT(token);
         userDetails = decoded;
-        console.log(decoded);
         if(decoded){
             console.log('User is authorized to perform this operation');
         }
@@ -250,11 +247,9 @@ async function acceptRide(ctx){
         pilot_id: userDetails.user_nt_id,
         passenger_id: ctx.request.query.passenger_id
     }
-    console.log(rideDetails);
-    let acceptResponse = await sql.sqlConnection(`INSERT INTO user_vehicle_txn (user_id, trip_id)
-    VALUES                       ((SELECT id FROM user_details WHERE user_nt_id = ?),
-                                  (SELECT id FROM vehicle_trips WHERE trip_status = 'IN_PROGRESS' AND pilot_id = (SELECT id from user_details WHERE user_nt_id = ?)));
-    `,[rideDetails.passenger_id, rideDetails.pilot_id]);
+    let acceptResponse = await sql.sqlConnection(`UPDATE trip_request_queue
+    SET   trip_request_status = 'trip_request_accepted'
+    WHERE pilot_id = (SELECT id FROM user_details WHERE user_nt_id = ?);`,[ rideDetails.pilot_id]);
     if(acceptResponse.affectedRows>0){
         console.log('Ride accepted successfully');
         ctx.body = 'Ride accepted successfully';
@@ -268,7 +263,6 @@ async function queryRideRequests(ctx){
         let token = ctx.request.header['authorization'];
         let decoded = decryptJWT(token);
         userDetails = decoded;
-        console.log(decoded);
         if(decoded){
             console.log('User is authorized to perform this operation');
         }
@@ -286,8 +280,8 @@ async function queryRideRequests(ctx){
     FROM 	trip_request_queue trt
     JOIN	user_details ud
     ON 		trt.passenger_id = ud.id
-    WHERE 	trt.pilot_id = (SELECT id FROM user_details WHERE user_nt_id = ?);`,[rideDetails.pilot_id]);
-    console.log(queryResponse);
+    WHERE 	trt.pilot_id = (SELECT id FROM user_details WHERE user_nt_id = ?)
+    AND 	trt.trip_request_status = 'trip_request_sent';`,[rideDetails.pilot_id]);
     if(queryResponse.length>0){
         console.log('Requests found');
         ctx.body = queryResponse;
@@ -307,7 +301,6 @@ async function endRide(ctx){
         let token = ctx.request.header['authorization'];
         let decoded = decryptJWT(token);
         userDetails = decoded;
-        console.log(decoded);
         if(decoded){
             console.log('User is authorized to perform this operation');
         }
@@ -326,6 +319,69 @@ async function endRide(ctx){
     }
 }
 
+async function isRideRequestAccepted(ctx){
+    let userDetails;
+    if(ctx.request.header['authorization']) {
+        console.log('Authorization header found');
+        let token = ctx.request.header['authorization'];
+        let decoded = decryptJWT(token);
+        userDetails = decoded;
+        if(decoded){
+            console.log('User is authorized to perform this operation');
+        }
+        else{
+            console.log('User is not authorized to perform this operation');
+            ctx.body = 'User is not authorized to perform this operation';
+            ctx.status = 401;
+            return;
+        }
+    }
+    let rideRequestAcceptedResponse = await sql.sqlConnection(`SELECT ud.user_name, ud.user_nt_id, ud.mobile_number, ud.location
+    FROM 	trip_request_queue trt
+    JOIN	user_details ud
+    ON 		trt.pilot_id = ud.id
+    WHERE 	trt.passenger_id = (SELECT id FROM user_details WHERE user_nt_id = ?)
+    AND 	trt.trip_request_status = 'trip_request_accepted';`,[userDetails.user_nt_id]);
+    if(rideRequestAcceptedResponse.length>0){
+        console.log('Request accepted');
+        ctx.body = 'Request accepted';
+        ctx.status = 200;
+    }
+    else{
+        console.log('Request not accepted');
+        ctx.body = 'Request not accepted';
+        ctx.status = 400;
+    }
+}
+
+
+async function rideRequestAcceptSeen(ctx){
+    let userDetails;
+    if(ctx.request.header['authorization']) {
+        console.log('Authorization header found');
+        let token = ctx.request.header['authorization'];
+        let decoded = decryptJWT(token);
+        userDetails = decoded;
+        if(decoded){
+            console.log('User is authorized to perform this operation');
+        }
+        else{
+            console.log('User is not authorized to perform this operation');
+            ctx.body = 'User is not authorized to perform this operation';
+            ctx.status = 401;
+            return;
+        }
+    }
+    let rideRequestSeenResponse = await sql.sqlConnection(`UPDATE trip_request_queue
+    SET    trip_request_status = 'trip_request_completed'
+    WHERE  passenger_id = (SELECT id FROM user_details WHERE user_nt_id = ?)`,[userDetails.user_nt_id]);
+    if(rideRequestSeenResponse.affectedRows>0){
+        console.log('Request queue updated successfully');
+        ctx.body = 'Request queue updated successfully';
+        ctx.status = 200;
+    }
+
+}
 
 
 // Function to create JWT for each user after authentication
@@ -355,5 +411,7 @@ module.exports = {
     requestRide,
     acceptRide,
     endRide,
-    queryRideRequests
+    queryRideRequests,
+    rideRequestAcceptSeen,
+    isRideRequestAccepted
 };

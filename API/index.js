@@ -31,6 +31,12 @@ router.get('/acceptRide', async (ctx) => {
 router.get('/queryRideRequests', async (ctx) => {
     return authServices.queryRideRequests(ctx);
 });
+router.get('/rideRequestAcceptSeen', async (ctx) => {
+    return authServices.rideRequestAcceptSeen(ctx);
+});
+router.get('/isRideRequestAccepted', async (ctx) => {
+    return authServices.isRideRequestAccepted(ctx);
+});
 
 router.get('/getAvailableRides', async (ctx) => {
     return authServices.getAvailableRides(ctx);

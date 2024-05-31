@@ -1,6 +1,6 @@
 <template>
   <!--Copyright Notice : © 2024 Comcast-->
-  <v-container class="fill-height">
+  <v-container class="">
     <!-- Vuetify app bar -->
     <v-app-bar app dark color="primary">
       <v-toolbar-title>Pilot's Dashboard</v-toolbar-title>
@@ -11,8 +11,8 @@
     </v-app-bar>
 
     <!-- Card content -->
-    <v-card class="max-width mt-8 pa-2"> <!-- Adjusted margin-top -->
-      <v-card-title class="headline">Details</v-card-title>
+    <v-card class="mt-8 pa-2" height="75vh" width="90vw"> <!-- Adjusted margin-top -->
+      <v-card-title class="headline">Ride request Details</v-card-title>
       <v-divider></v-divider>
       <v-divider></v-divider>
       <v-list-item v-if="ride.length>0">
@@ -26,8 +26,8 @@
             <span>{{ ride[0].mobile_number }}</span>
           </v-list-item-subtitle>
           <v-list-item-subtitle>
-            <v-btn color="primary" @click="acceptRideRequest(ride.user_nt_id)">Accept Ride request</v-btn>
-            <v-btn class="ml-3" color="error">deny</v-btn>
+            <v-btn color="primary" @click="acceptRideRequest(ride.user_nt_id)">{{ buttonText2 }}</v-btn>
+            <v-btn class="ml-1" color="error">deny</v-btn>
           </v-list-item-subtitle>
         </v-list-item-content>
 
@@ -54,12 +54,11 @@ export default {
       ride: [],
       rideOffers:[],
       buttonText: 'End Trip',
+      buttonText2: 'Accept Ride request',
+      getRideoffers: null
     };
   },
   mounted() {
-    setInterval(() => {
-        this.getRideOffers();
-      }, 20000);
     let config = {
                  method: 'get',
                 maxBodyLength: Infinity,
@@ -73,7 +72,7 @@ export default {
             .then((response) => {
                     console.log(JSON.stringify(response.data));
                     //this.$router.push({ name: 'PilotHome' });
-                    setInterval(() => {
+                    this.getRideoffers =  setInterval(() => {
         this.getRideOffers();
       }, 5000);
                 })
@@ -121,7 +120,6 @@ export default {
         .then((response) => {
             console.log(JSON.stringify(response.data));
             this.ride = response.data;
-            console.log(this.ride);
         })
       .catch((error) => {
             console.log(error);
@@ -129,6 +127,7 @@ export default {
       console.log('Getting ride offers...');
     },
     acceptRideRequest(user_nt_id) {
+      clearInterval(this.getRideoffers);
       // Logic to accept ride request
       let config = {
         method: 'get',
@@ -142,6 +141,7 @@ export default {
         axios.request(config)
         .then((response) => {
           console.log(JSON.stringify(response.data));
+          this.buttonText2 = 'Ride request accepted';
           })
           .catch((error) => {
           console.log(error);

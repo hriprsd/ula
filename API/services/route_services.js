@@ -1,7 +1,7 @@
 const axios = require('axios');
 const googleMaps = require('@google/maps');
 const {SphericalUtil, PolyUtil} =  require("node-geometry-library");
-const apiKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+const apiKey = 'AIzaxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 async function getRoute(startLocation, endLocation) {
     const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURIComponent(startLocation)}&destination=${encodeURIComponent(endLocation)}&key=${apiKey}`;
     const response = await axios.get(url);

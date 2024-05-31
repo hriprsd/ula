@@ -4,10 +4,10 @@ const mysql = require('mysql2/promise');
 
 var connection;
 connection = mysql.createPool({
-    host     : '100.91.106.187',
-    user     : 'xxxxxxxxxxx',
-    password : 'xxxxxxxxxxx',
-    database : 'xxxxxxxxxxx',
+    host     : 'xxxxxxxxx',
+    user     : 'xxxxxxxxx',
+    password : 'xxxxxxxxx',
+    database : 'xxxxxxxxx',
     port: 6379,
     waitForConnections: true,
     supportBigNumbers: true,
