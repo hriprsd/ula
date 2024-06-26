@@ -44,7 +44,7 @@ Follow the prompts to initialize Ionic in your existing Vue.js app.
 Add the Android platform to your Ionic project. We're using capacitor to build on android platform.
 
 ```
-npm install @capacitor/cli @capacitor/core
+npm install @capacitor/cli @capacitor/core @capacitor/android
 npx cap init ula com.example.ula
 ```
 
@@ -64,6 +64,8 @@ ionic build
 
 ```
 npx cap add android # to add android platform to capacitor
+cd android
+export ANDROID_HOME=/usr/lib/android-sdk/ # Android home location pointing to android-sdk
 ./gradlew assembleDebug # to build debug apk for testing
 ./gradlew assembleRelease # to build release apk for production
 ```
